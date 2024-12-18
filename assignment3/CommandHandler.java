@@ -1,84 +1,142 @@
 package assignment3;
-import java.util.Scanner;
 
-public class CommandHandler {
-    private UserManager userManager;
+import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 
-    public CommandHandler() {
-        userManager = new UserManager(); 
+public class PropertyManager {
+    private Map<String, Property> properties;
+
+    // Constructor
+    public PropertyManager() {
+        properties = new HashMap<>();
+        loadPropertiesFromFile(); // Load properties from file when the manager is initialized
     }
 
-    public void startApplication() {
-        Scanner scanner = new Scanner(System.in);
-        int choice = 0;
+    // Add a new property and save it to the file
+    public void addProperty(Property property) {
+        properties.put(property.getPropertyId(), property);
+        savePropertyToFile(property); // Save this specific property to the file
+    }
 
-        while (true) {
-            System.out.println("1. Log In");
-            System.out.println("2. Sign Up");
-            System.out.print("Enter your choice (1 or 2): ");
+    // Get a property by its ID
+    public Property getPropertyById(String propertyId) {
+        return properties.get(propertyId);
+    }
 
-            if (scanner.hasNextInt()) {
-                choice = scanner.nextInt();
-                scanner.nextLine(); 
-                if (choice == 1 || choice == 2) {
-                    break;
+    // Get all properties
+    public Map<String, Property> getAllProperties() {
+        return properties;
+    }
+
+    // Get archived properties (e.g., "Sold", "Archived")
+    public Map<String, Property> getArchivedProperties() {
+        Map<String, Property> archivedProperties = new HashMap<>();
+        for (Map.Entry<String, Property> entry : properties.entrySet()) {
+            if ("Archived".equalsIgnoreCase(entry.getValue().getStatus())) {
+                archivedProperties.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return archivedProperties;
+    }
+
+    // Method to save property data to the file
+    private void savePropertyToFile(Property property) {
+        String filePath = "PropertyCollection.txt";
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
+            writer.write("Property ID: " + property.getPropertyId());
+            writer.write("\nType: " + property.getType());
+            writer.write("\nAddress: " + property.getAddress());
+            writer.write("\nPrice: " + property.getPrice());
+            writer.write("\nStatus: " + property.getStatus());
+            writer.write("\nSeller Email: " + property.getSellerEmail());
+            writer.write("\nSeller Phone: " + property.getSellerPhoneNumber());
+            writer.write("\n-----------------------------\n"); // Separator between properties
+        } catch (IOException e) {
+            System.out.println("An error occurred while saving the property to the file.");
+            e.printStackTrace();
+        }
+    }
+
+    // Method to load all properties from the file
+    private void loadPropertiesFromFile() {
+        String filePath = "PropertyCollection.txt";
+        File file = new File(filePath);
+
+        if (file.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String line;
+                Property property = null;
+                while ((line = reader.readLine()) != null) {
+                    if (line.startsWith("Property ID: ")) {
+                        // Save the previous property if exists
+                        if (property != null) {
+                            properties.put(property.getPropertyId(), property);
+                        }
+                        // Create a new property for the next set of data
+                        String propertyId = line.substring("Property ID: ".length());
+                        property = new Property(propertyId, "", "", 0.0, "", "", ""); // Initialize property with ID
+                    } else if (line.startsWith("Type: ")) {
+                        property.setType(line.substring("Type: ".length()));
+                    } else if (line.startsWith("Address: ")) {
+                        property.setAddress(line.substring("Address: ".length()));
+                    } else if (line.startsWith("Price: ")) {
+                        property.setPrice(Double.parseDouble(line.substring("Price: ".length())));
+                    } else if (line.startsWith("Status: ")) {
+                        property.setStatus(line.substring("Status: ".length()));
+                    } else if (line.startsWith("Seller Email: ")) {
+                        property.setSellerEmail(line.substring("Seller Email: ".length()));
+                    } else if (line.startsWith("Seller Phone: ")) {
+                        property.setSellerPhoneNumber(line.substring("Seller Phone: ".length()));
+                    }
                 }
-            } else {
-                scanner.nextLine();
-            }
-            System.out.println("Invalid input. Please enter 1 for Log In or 2 for Sign Up.");
-        }
-
-        if (choice == 1) {
-            System.out.print("Enter username: ");
-            String username = scanner.nextLine();
-            System.out.print("Enter password: ");
-            String password = scanner.nextLine();
-            User user = userManager.authenticate(username, password);
-
-            if (user != null) {
-                System.out.println("Login successful!");
-                System.out.println("Welcome, " + user.getUsername());
-            } else {
-                System.out.println("Invalid username or password.");
-            }
-        } else if (choice == 2) {
-            System.out.print("Enter username: ");
-            String username = scanner.nextLine();
-
-            while (!username.matches("[a-zA-Z0-9]+")) {
-                System.out.println("Invalid username. Only letters and numbers are allowed.");
-                System.out.print("Enter username again: ");
-                username = scanner.nextLine();
-            }
-
-            System.out.print("Enter password: ");
-            String password = scanner.nextLine();
-
-            while (!password.matches("[a-zA-Z0-9]+")) {
-                System.out.println("Invalid password. Only letters and numbers are allowed.");
-                System.out.print("Enter password again: ");
-                password = scanner.nextLine();
-            }
-
-            System.out.print("Enter role (Buyer/Seller/Agent/Admin): ");
-            String role = scanner.nextLine();
-
-            while (!role.equalsIgnoreCase("Buyer") &&
-                   !role.equalsIgnoreCase("Seller") &&
-                   !role.equalsIgnoreCase("Agent") &&
-                   !role.equalsIgnoreCase("Admin")) {
-                System.out.println("Invalid role. Please enter one of the following: Buyer, Seller, Agent, Admin.");
-                System.out.print("Enter role again: ");
-                role = scanner.nextLine();
-            }
-
-            if (userManager.registerUser(username, password, role)) {
-                System.out.println("User registered successfully!");
-                System.out.println("Your email is: " + username + "@email.com");
-            } else {
-                System.out.println("User already exists.");
+                // Add the last property if exists
+                if (property != null) {
+                    properties.put(property.getPropertyId(), property);
+                }
+            } catch (IOException e) {
+                System.out.println("An error occurred while reading the properties from the file.");
+                e.printStackTrace();
             }
         }
+    }
+
+    // Method to edit a property (e.g., update seller's phone number)
+    public void editProperty(String propertyId, String newPhoneNumber) {
+        Property property = properties.get(propertyId);
+        if (property != null) {
+            property.setSellerPhoneNumber(newPhoneNumber);  // Update the seller's phone number
+            saveAllPropertiesToFile();  // Save all properties after editing
+        } else {
+            System.out.println("Property with ID " + propertyId + " not found.");
+        }
+    }
+
+    // Update the method to overwrite the file whenever properties are changed
+    public void saveAllPropertiesToFile() {
+        String filePath = "PropertyCollection.txt";
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {  // Overwrite the file each time
+            for (Property property : properties.values()) {
+                writer.write("Property ID: " + property.getPropertyId());
+                writer.write("\nType: " + property.getType());
+                writer.write("\nAddress: " + property.getAddress());
+                writer.write("\nPrice: " + property.getPrice());
+                writer.write("\nStatus: " + property.getStatus());
+                writer.write("\nSeller Email: " + property.getSellerEmail());
+                writer.write("\nSeller Phone: " + property.getSellerPhoneNumber());
+                writer.write("\n-----------------------------\n");
+            }
+        } catch (IOException e) {
+            System.out.println("An error occurred while saving properties to the file.");
+            e.printStackTrace();
+        }
+    }
+    public Property getPropertyBySellerEmail(String sellerEmail) {
+        for (Property property : properties.values()) {
+            if (property.getSellerEmail().equalsIgnoreCase(sellerEmail)) {
+                return property;  // Return the property if the seller's email matches
+            }
+        }
+        return null;  // Return null if no property found with the given seller's email
     }
 }
