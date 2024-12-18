@@ -1,20 +1,12 @@
 package assignment3;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.Scanner;
+import java.io.*;
+import java.util.*;
 
 public class CommandHandler {
     private UserManager userManager;
     private PropertyManager propertyManager;
     private User currentUser;
-    
 
     public CommandHandler() {
         userManager = new UserManager();
@@ -24,12 +16,12 @@ public class CommandHandler {
     public void startApplication() {
         Scanner scanner = new Scanner(System.in);
         int choice = 0;
-    
+
         while (true) {
             System.out.println("1. Log In");
             System.out.println("2. Sign Up");
             System.out.print("Enter your choice (1 or 2): ");
-    
+
             if (scanner.hasNextInt()) {
                 choice = scanner.nextInt();
                 scanner.nextLine(); // Consume newline
@@ -41,28 +33,28 @@ public class CommandHandler {
             }
             System.out.println("Invalid input. Please enter 1 for Log In or 2 for Sign Up.");
         }
-    
+
         if (choice == 1) {
             System.out.print("Enter username: ");
             String username = scanner.nextLine();
             System.out.print("Enter password: ");
             String password = scanner.nextLine();
             User user = userManager.authenticate(username, password);
-    
+
             if (user != null) {
                 currentUser = user;
                 System.out.println("Login successful!");
                 System.out.println("Welcome, " + user.getUsername());
-    
-                // Role-based menu
-                if (user.getRole().equalsIgnoreCase("Seller")) {
-                    showSellerMenu(scanner, user.getEmail());
+                System.out.println("Debug: User role is " + user.getRole()); // Debugging output
+
+                if (user.getRole().equalsIgnoreCase("Admin")) {
+                    showAdminMenu(scanner);
+                } else if (user.getRole().equalsIgnoreCase("Agent")) {
+                    showAgentMenu(scanner);
+                } else if (user.getRole().equalsIgnoreCase("Seller")) {
+                    showSellerMenu(scanner);
                 } else if (user.getRole().equalsIgnoreCase("Buyer")) {
                     showBuyerMenu(scanner, user.getUsername());
-                } else if (user.getRole().equalsIgnoreCase("Agent")) {
-                    showAgentMenu(scanner);  // Show agent menu
-                } else if (user.getRole().equalsIgnoreCase("Admin")) {
-                    showAdminMenu(scanner);  // Show admin menu
                 } else {
                     System.out.println("Access not allowed for your role.");
                 }
@@ -72,34 +64,34 @@ public class CommandHandler {
         } else if (choice == 2) {
             System.out.print("Enter username: ");
             String username = scanner.nextLine();
-    
+
             while (!username.matches("[a-zA-Z0-9]+")) {
                 System.out.println("Invalid username. Only letters and numbers are allowed.");
                 System.out.print("Enter username again: ");
                 username = scanner.nextLine();
             }
-    
+
             System.out.print("Enter password: ");
             String password = scanner.nextLine();
-    
+
             while (!password.matches("[a-zA-Z0-9]+")) {
                 System.out.println("Invalid password. Only letters and numbers are allowed.");
                 System.out.print("Enter password again: ");
                 password = scanner.nextLine();
             }
-    
+
             System.out.print("Enter role (Buyer/Seller/Agent/Admin): ");
             String role = scanner.nextLine();
-    
+
             while (!role.equalsIgnoreCase("Buyer") &&
-                   !role.equalsIgnoreCase("Seller") &&
-                   !role.equalsIgnoreCase("Agent") &&
-                   !role.equalsIgnoreCase("Admin")) {
+                    !role.equalsIgnoreCase("Seller") &&
+                    !role.equalsIgnoreCase("Agent") &&
+                    !role.equalsIgnoreCase("Admin")) {
                 System.out.println("Invalid role. Please enter one of the following: Buyer, Seller, Agent, Admin.");
                 System.out.print("Enter role again: ");
                 role = scanner.nextLine();
             }
-    
+
             if (userManager.registerUser(username, password, role)) {
                 System.out.println("User registered successfully!");
                 System.out.println("Your email is: " + username + "@email.com");
@@ -108,7 +100,7 @@ public class CommandHandler {
             }
         }
     }
-    
+
     private void showAdminMenu(Scanner scanner) {
         while (true) {
             System.out.println("\n--- Admin Menu ---");
@@ -116,10 +108,10 @@ public class CommandHandler {
             System.out.println("2. Get Seller Properties");
             System.out.println("3. Exit");
             System.out.print("Enter your choice: ");
-    
+
             int choice = scanner.nextInt();
-            scanner.nextLine();  // Consume the newline
-    
+            scanner.nextLine();  // Consume newline
+
             if (choice == 1) {
                 retrieveAccounts();
             } else if (choice == 2) {
@@ -131,423 +123,43 @@ public class CommandHandler {
             }
         }
     }
+
     private void retrieveAccounts() {
         System.out.println("\n--- All Users ---");
         for (User user : userManager.getAllUsers().values()) {
             System.out.println(user);
         }
     }
+
     private void getSellerProperties(Scanner scanner) {
         System.out.print("Enter seller email to retrieve properties: ");
         String sellerEmail = scanner.nextLine().trim();
-    
+
         System.out.println("\n--- Properties of " + sellerEmail + " ---");
-        List<Property> properties = loadPropertiesFromFile();
-    
+
         boolean foundProperties = false;
-        for (Property property : properties) {
-            if (property.getSellerEmail().trim().equals(sellerEmail)) {
+        for (Property property : propertyManager.getAllProperties().values()) {
+            if (property.getSellerEmail().equalsIgnoreCase(sellerEmail.trim())) {
                 System.out.println(property);
                 System.out.println("---------------------------");
                 foundProperties = true;
             }
         }
-    
+
         if (!foundProperties) {
             System.out.println("No properties found for this seller.");
         }
     }
-    private List<Property> loadPropertiesFromFile() {
-    List<Property> properties = new ArrayList<>();
-    try (BufferedReader reader = new BufferedReader(new FileReader("PropertyCollection.txt"))) {
-        String line;
-        while ((line = reader.readLine()) != null) {
-            String[] parts = line.split("\\|");
-            if (parts.length == 7) {
-                String propertyId = parts[0].trim();
-                String type = parts[1].trim();
-                String address = parts[2].trim();
-                double price = Double.parseDouble(parts[3].trim());
-                String status = parts[4].trim();
-                String sellerEmail = parts[5].trim();
-                String sellerPhoneNumber = parts[6].trim();
 
-                Property property = new Property(propertyId, type, address, price, status, sellerEmail, sellerPhoneNumber);
-                properties.add(property);
-            }
-        }
-    } catch (IOException e) {
-        System.out.println("Error reading the properties file: " + e.getMessage());
-    }
-    return properties;
-}
-private void showAgentMenu(Scanner scanner) {
-    while (true) {
-        System.out.println("\n--- Agent Menu ---");
-        System.out.println("1. Help with Contract");
-        System.out.println("2. Edit Property (Selling status only)");
-        System.out.println("3. View Properties");
-        System.out.println("4. Exit");
-        System.out.print("Enter your choice: ");
-
-        int choice = scanner.nextInt();
-        scanner.nextLine();
-
-        if (choice == 1) {
-            prepareContract(scanner);
-        } else if (choice == 2) {
-            editProperty(scanner, currentUser.getEmail());
-        } else if (choice == 3) {
-            viewProperties(scanner);
-        } else if (choice == 4) {
-            break;
-        } else {
-            System.out.println("Invalid choice. Please try again.");
-        }
-    }
-}
-
-
-private void prepareContract(Scanner scanner) {
-    System.out.print("Enter Property ID to assist with contract preparation: ");
-    String propertyId = scanner.nextLine();
-
-    Property property = propertyManager.getPropertyById(propertyId);
-    if (property != null) {
-        System.out.println("Preparing contract for property: " + propertyId);
-        System.out.println("Property Type: " + property.getType());
-        System.out.println("Property Address: " + property.getAddress());
-        System.out.println("Property Price: " + property.getPrice());
-
-        // Simulate contract preparation process
-        System.out.println("Contract prepared successfully for property: " + propertyId);
-    } else {
-        System.out.println("Property not found with ID: " + propertyId);
-    }
-}
-
-private void showSellerMenu(Scanner scanner, String sellerEmail) {
-    int sellerChoice = 0;
-    while (true) {
-        System.out.println("\n--- Seller Menu ---");
-        System.out.println("1. Create Property");
-        System.out.println("2. Edit Property");
-        System.out.println("3. Archive Property");
-        System.out.println("4. Mail");
-        System.out.print("Enter your choice (1, 2, 3, or 4): ");
-
-        if (scanner.hasNextInt()) {
-            sellerChoice = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
-            if (sellerChoice >= 1 && sellerChoice <= 4) {
-                break;
-            }
-        } else {
-            scanner.nextLine(); 
-        }
-        System.out.println("Invalid input. Please enter a valid option.");
+    private void showAgentMenu(Scanner scanner) {
+        System.out.println("Agent menu goes here (Implementation placeholder).");
     }
 
-    if (sellerChoice == 1) {
-        createProperty(scanner, sellerEmail);
-    } else if (sellerChoice == 2) {
-        editProperty(scanner, sellerEmail); 
-    } else if (sellerChoice == 3) {
-        showArchivedProperties(sellerEmail); 
-    } else if (sellerChoice == 4) {
-        if (currentUser != null) {
-            showMessagesForSellerFromFile(currentUser.getEmail());
-        } else {
-            System.out.println("Error: No user logged in.");
-        }
-    }
-}
-    
-private void showMessagesForSellerFromFile(String sellerEmail) {
-    if (sellerEmail == null || sellerEmail.isEmpty()) {
-        System.out.println("Error: Invalid seller email.");
-        return;
+    private void showSellerMenu(Scanner scanner) {
+        System.out.println("Seller menu goes here (Implementation placeholder).");
     }
 
-    System.out.println("Checking messages for: " + sellerEmail);
-
-    boolean hasMessages = false;
-    try (BufferedReader reader = new BufferedReader(new FileReader("messages.txt"))) {
-        String line;
-        while ((line = reader.readLine()) != null) {
-            if (line.contains("To: " + sellerEmail)) {
-                hasMessages = true;
-                System.out.println(line);
-            }
-        }
-        
-        if (!hasMessages) {
-            System.out.println("No new messages for this seller.");
-        }
-    } catch (IOException e) {
-        System.out.println("Error reading messages file: " + e.getMessage());
-    }
-}
-
-
-    private void createProperty(Scanner scanner, String sellerEmail) {
-        // Generate random 8-digit property ID
-        String propertyId = generatePropertyId();
-
-        System.out.print("Enter property type (e.g., House, Apartment, etc.): ");
-        String type = scanner.nextLine();
-
-        System.out.print("Enter property address: ");
-        String address = scanner.nextLine();
-
-        System.out.print("Enter property price: ");
-        double price = scanner.nextDouble();
-        scanner.nextLine(); // Consume newline
-
-        System.out.print("Enter your phone number (e.g., +1234567890): ");
-        String phoneNumber = scanner.nextLine();
-
-        while (!phoneNumber.matches("\\+\\d+")) {
-            System.out.println("Invalid phone number. Use only numbers and '+'.");
-            System.out.print("Enter phone number again: ");
-            phoneNumber = scanner.nextLine();
-        }
-
-        String status = "Selling"; // Default status
-
-        // Create the property object
-        Property property = new Property(propertyId, type, address, price, status, sellerEmail, phoneNumber);
-
-        // Add property to the property manager and save to file
-        propertyManager.addProperty(property);
-        System.out.println("Property created successfully with ID: " + propertyId);
-    }
-
-    private void editProperty(Scanner scanner, String sellerEmail) {
-        System.out.print("Enter property ID to edit: ");
-        String propertyId = scanner.nextLine();
-        
-        // Find the property by ID
-        Property property = propertyManager.getPropertyById(propertyId);
-        if (property != null) {
-            if (property.getSellerEmail().equals(sellerEmail) || currentUser.getRole().equalsIgnoreCase("Agent")) {
-                if (property.getStatus().equals("Selling")) {
-                    System.out.println("Editing Property: " + propertyId);
-    
-                    // Asking the user what they want to edit
-                    System.out.println("What would you like to edit?");
-                    System.out.println("1. Type");
-                    System.out.println("2. Address");
-                    System.out.println("3. Price");
-                    System.out.println("4. Seller Phone");
-                    System.out.println("5. Status (e.g., change from Selling to Sold)");
-    
-                    System.out.print("Enter your choice (e.g., 1,2 to change both Type and Address): ");
-                    String choices = scanner.nextLine();
-    
-                    // Process choices and edit properties
-                    if (choices.contains("1")) {
-                        System.out.print("Enter new type (current: " + property.getType() + "): ");
-                        String newType = scanner.nextLine();
-                        property.setType(newType);
-                    }
-    
-                    if (choices.contains("2")) {
-                        System.out.print("Enter new address (current: " + property.getAddress() + "): ");
-                        String newAddress = scanner.nextLine();
-                        property.setAddress(newAddress);
-                    }
-    
-                    if (choices.contains("3")) {
-                        System.out.print("Enter new price (current: " + property.getPrice() + "): ");
-                        double newPrice = scanner.nextDouble();
-                        scanner.nextLine();
-                        property.setPrice(newPrice);
-                    }
-    
-                    if (choices.contains("4")) {
-                        System.out.print("Enter new seller phone number (current: " + property.getSellerPhoneNumber() + "): ");
-                        String newPhoneNumber = scanner.nextLine();
-                        property.setSellerPhoneNumber(newPhoneNumber);
-                    }
-    
-                    // New feature: Update status (for example, change to 'Sold')
-                    if (choices.contains("5")) {
-                        System.out.print("Enter new status (current: " + property.getStatus() + "): ");
-                        String newStatus = scanner.nextLine();
-                        if (newStatus.equalsIgnoreCase("Sold")) {
-                            property.setStatus("Sold");
-                            System.out.println("Property status updated to 'Sold'.");
-                        } else {
-                            System.out.println("Invalid status. Only 'Sold' is allowed.");
-                        }
-                    }
-    
-                    System.out.println("Property updated successfully!");
-    
-                    // Optionally, you can save the changes back to the file
-                    propertyManager.saveAllPropertiesToFile();  // Save updated properties back to the file
-                } else {
-                    System.out.println("You can only edit properties with 'Selling' status.");
-                }
-            } else {
-                System.out.println("You are not the owner of this property or do not have the right to edit it.");
-            }
-        } else {
-            System.out.println("Property not found.");
-        }
-    }
-    private void viewProperties(Scanner scanner) {
-        System.out.println("Enter status to filter by (Selling/Sold/all): ");
-        String status = scanner.nextLine();
-    
-        System.out.println("\n--- Properties List ---");
-        for (Property property : propertyManager.getAllProperties().values()) {
-            if (status.equalsIgnoreCase("all") || property.getStatus().equalsIgnoreCase(status)) {
-                System.out.println(property);
-                System.out.println("---------------------------");
-            }
-        }
-    }
-    
-    
-    private void showArchivedProperties(String sellerEmail) {
-        System.out.println("\n--- Archived Properties ---");
-        for (Property property : propertyManager.getAllProperties().values()) {
-            if (property.getStatus().equals("Sold") && property.getSellerEmail().equals(sellerEmail)) {
-                System.out.println(property);
-                System.out.println("---------------------------");
-            }
-        }
-    }
-    
-    private void showBuyerMenu(Scanner scanner, String buyerUsername) {
-        while (true) {
-            System.out.println("\n--- Buyer Menu ---");
-            System.out.println("1. Search Properties");
-            System.out.println("2. Contact Seller/Agent");
-            System.out.println("3. Make Payment");
-            System.out.println("4. Exit");
-            System.out.print("Enter your choice: ");
-    
-            int choice = scanner.nextInt();
-            scanner.nextLine();  // Consume the newline
-    
-            if (choice == 1) {
-                searchProperties(scanner);
-            } else if (choice == 2) {
-                contactSellerOrAgent(scanner, buyerUsername);
-            } else if (choice == 3) {
-                makePayment(scanner, buyerUsername);
-            } else if (choice == 4) {
-                break;
-            } else {
-                System.out.println("Invalid choice. Please try again.");
-            }
-        }
-    }
-    
-    private void makePayment(Scanner scanner, String buyerUsername) {
-        System.out.print("Enter property ID to buy: ");
-        String propertyId = scanner.nextLine();
-    
-        // Find the property by ID
-        Property property = propertyManager.getPropertyById(propertyId);
-        if (property != null) {
-            System.out.println("You have selected the following property:");
-            System.out.println(property);
-            
-            System.out.print("Enter your card number: ");
-            String cardNumber = scanner.nextLine();  
-            System.out.println("Card number " + cardNumber + " accepted (no validation).");
-    
-            System.out.print("Enter 'yes' to proceed with the payment, or 'no' to cancel: ");
-            String proceed = scanner.nextLine();
-    
-            if (proceed.equalsIgnoreCase("yes")) {
-                System.out.println("Payment for property ID " + propertyId + " has been successfully processed.");
-    
-                System.out.println("Notification sent to the seller for property ID " + propertyId);
-                property.setStatus("Sold"); 
-                propertyManager.saveAllPropertiesToFile();
-                System.out.println("Property status updated to 'Sold'.");
-            } else {
-                System.out.println("Payment process cancelled.");
-            }
-        } else {
-            System.out.println("Property ID not found.");
-        }
-    }
-    
-    
-    
-    private void contactSellerOrAgent(Scanner scanner, String buyerUsername) {
-        System.out.print("Enter seller email to contact (e.g., Sellerman@email.com): ");
-        String sellerEmail = scanner.nextLine();
-        
-        User seller = userManager.getUserByEmail(sellerEmail);
-        
-        if (seller != null) {
-            System.out.print("Enter your message: ");
-            String messageContent = scanner.nextLine();
-            
-            saveMessageToFile(buyerUsername, seller.getUsername(), messageContent);
-            System.out.println("Message sent to seller at: " + sellerEmail);
-        } else {
-            System.out.println("Seller with email " + sellerEmail + " not found.");
-        }
-    }
-    
-    private void saveMessageToFile(String buyerUsername, String sellerUsername, String messageContent) {
-        String messagesFilePath = "messages.txt";
-    
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(messagesFilePath, true))) {
-            writer.write("From: " + buyerUsername + " -> To: " + sellerUsername + " | Message: " + messageContent);
-            writer.newLine();
-        } catch (IOException e) {
-            System.out.println("Error saving message to file: " + e.getMessage());
-        }
-    }
-    
-    private void searchProperties(Scanner scanner) {
-        System.out.print("Enter property type (or type 'all' for all types): ");
-        String type = scanner.nextLine();
-    
-        System.out.print("Enter a part of the address (optional): ");
-        String addressPart = scanner.nextLine();
-    
-        System.out.print("Enter status (Selling, Sold, or all): ");
-        String status = scanner.nextLine().trim();
-    
-        System.out.println("\n--- Search Results ---");
-        for (Property property : propertyManager.getAllProperties().values()) {
-            boolean matches = true;
-    
-            if (!type.equalsIgnoreCase("all") && !property.getType().equalsIgnoreCase(type)) {
-                matches = false;
-            }
-    
-            if (!addressPart.isEmpty() && !property.getAddress().toLowerCase().contains(addressPart.toLowerCase())) {
-                matches = false;
-            }
-    
-            if (!status.equalsIgnoreCase("all") && !property.getStatus().equalsIgnoreCase(status)) {
-                matches = false;
-            }
-    
-            if (matches) {
-                System.out.println(property);
-                System.out.println("---------------------------");
-            }
-        }
-    }
-
-    private String generatePropertyId() {
-        Random random = new Random();
-        StringBuilder propertyId = new StringBuilder();
-        for (int i = 0; i < 8; i++) {
-            propertyId.append(random.nextInt(10)); // Generate a random digit
-        }
-        return propertyId.toString();
+    private void showBuyerMenu(Scanner scanner, String username) {
+        System.out.println("Buyer menu goes here (Implementation placeholder).");
     }
 }
