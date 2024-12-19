@@ -137,19 +137,18 @@ public class CommandHandler {
     private void getSellerProperties(Scanner scanner) {
         System.out.print("Enter seller email to retrieve properties: ");
         String sellerEmail = scanner.nextLine().trim();
-
+    
         System.out.println("\n--- Properties of " + sellerEmail + " ---");
         boolean foundProperties = false;
-
+    
         for (Property property : propertyManager.getAllProperties().values()) {
-            if (property.getSellerEmail() != null &&
-                property.getSellerEmail().equalsIgnoreCase(sellerEmail)) {
+            if (property.getSellerEmail() != null && property.getSellerEmail().equalsIgnoreCase(sellerEmail)) {
                 System.out.println(property);
                 System.out.println("---------------------------");
                 foundProperties = true;
             }
         }
-
+    
         if (!foundProperties) {
             System.out.println("No properties found for this seller.");
         }
