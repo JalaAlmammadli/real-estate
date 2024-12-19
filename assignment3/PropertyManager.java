@@ -101,17 +101,6 @@ public class PropertyManager {
         }
     }
 
-    // Method to edit a property (e.g., update seller's phone number)
-    public void editProperty(String propertyId, String newPhoneNumber) {
-        Property property = properties.get(propertyId);
-        if (property != null) {
-            property.setSellerPhoneNumber(newPhoneNumber);  // Update the seller's phone number
-            saveAllPropertiesToFile();  // Save all properties after editing
-        } else {
-            System.out.println("Property with ID " + propertyId + " not found.");
-        }
-    }
-
     // Update the method to overwrite the file whenever properties are changed
     public void saveAllPropertiesToFile() {
         String filePath = "PropertyCollection.txt";
@@ -131,6 +120,7 @@ public class PropertyManager {
             e.printStackTrace();
         }
     }
+    
     public Property getPropertyBySellerEmail(String sellerEmail) {
         for (Property property : properties.values()) {
             if (property.getSellerEmail().equalsIgnoreCase(sellerEmail)) {

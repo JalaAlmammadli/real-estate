@@ -119,4 +119,16 @@ public class Property {
 
         return sb.toString();
     }
+
+    private String permissionStatus; // Field to store the permission status
+
+    // Getter for permissionStatus
+    public String getPermissionStatus() {
+        return permissionStatus;
+    }
+
+    // Setter for permissionStatus
+    public void setPermissionStatus(String permissionStatus) {
+        this.permissionStatus = permissionStatus;
+    }
 }

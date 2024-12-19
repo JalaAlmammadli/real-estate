@@ -1,10 +1,6 @@
 package assignment3;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -114,7 +110,7 @@ public class CommandHandler {
             System.out.println("\n--- Admin Menu ---");
             System.out.println("1. Retrieve Accounts");
             System.out.println("2. Get Seller Properties");
-            System.out.println("3. Exit");
+            System.out.println("3. Log Out");
             System.out.print("Enter your choice: ");
 
             int choice = scanner.nextInt();
@@ -125,6 +121,7 @@ public class CommandHandler {
             } else if (choice == 2) {
                 getSellerProperties(scanner);
             } else if (choice == 3) {
+                System.out.println("Logged out successfully.");
                 break;
             } else {
                 System.out.println("Invalid choice. Please try again.");
@@ -185,15 +182,21 @@ public class CommandHandler {
         while (true) {
             System.out.println("\n--- Agent Menu ---");
             System.out.println("1. Request Property Edit");
-            System.out.println("2. Exit");
+            System.out.println("2. Edit Properties");
+            System.out.println("3. Log Out");
             System.out.print("Enter your choice: ");
 
             int choice = scanner.nextInt();
-            scanner.nextLine();
+            scanner.nextLine(); // Consume newline
 
             if (choice == 1) {
                 requestPropertyEdit(scanner);
             } else if (choice == 2) {
+                System.out.print("Enter your email for validation: ");
+                String sellerEmail = scanner.nextLine();
+                editProperty(scanner, sellerEmail); // Use CommandHandler's editProperty
+            } else if (choice == 3) {
+                System.out.println("Logged out successfully.");
                 break;
             } else {
                 System.out.println("Invalid choice. Please try again.");
@@ -221,41 +224,44 @@ public class CommandHandler {
     }
 
     private void showSellerMenu(Scanner scanner, String sellerEmail) {
-        int sellerChoice = 0;
         while (true) {
             System.out.println("\n--- Seller Menu ---");
             System.out.println("1. Create Property");
             System.out.println("2. Edit Property");
             System.out.println("3. Archive Property");
-            System.out.println("4. Mail");
-            System.out.print("Enter your choice (1, 2, 3, or 4): ");
+            System.out.println("4. Mails");
+            System.out.println("5. Approve/Deny Requests");
+            System.out.println("6. Log Out");
+            System.out.print("Enter your choice (1, 2, 3, 4, 5 or 6): ");
 
             if (scanner.hasNextInt()) {
-                sellerChoice = scanner.nextInt();
+                int sellerChoice = scanner.nextInt();
                 scanner.nextLine(); // Consume newline
-                if (sellerChoice >= 1 && sellerChoice <= 4) {
-                    break;
+
+                if (sellerChoice == 1) {
+                    createProperty(scanner, sellerEmail);
+                } else if (sellerChoice == 2) {
+                    editProperty(scanner, sellerEmail);
+                } else if (sellerChoice == 3) {
+                    showArchivedProperties(sellerEmail);
+                } else if (sellerChoice == 4) {
+                    showMessagesForSellerFromFile(sellerEmail);
+                } else if (sellerChoice == 5) {
+                    viewAndApproveEditRequests(scanner);
+                } else if (sellerChoice == 6) {
+                    System.out.println("Logged out successfully.");
+                    return; // Exits the method, breaking the loop
+                } else {
+                    System.out.println("Invalid choice. Please enter a valid option.");
                 }
             } else {
-                scanner.nextLine();
-            }
-            System.out.println("Invalid input. Please enter a valid option.");
-        }
-
-        if (sellerChoice == 1) {
-            createProperty(scanner, sellerEmail);
-        } else if (sellerChoice == 2) {
-            editProperty(scanner, sellerEmail);
-        } else if (sellerChoice == 3) {
-            showArchivedProperties(sellerEmail);
-        } else if (sellerChoice == 4) {
-            if (currentUser != null) {
-                showMessagesForSellerFromFile(currentUser.getEmail());
-            } else {
-                System.out.println("Error: No user logged in.");
+                scanner.nextLine(); // Consume invalid input
+                System.out.println("Invalid input. Please enter a number between 1 and 6.");
             }
         }
     }
+
+
 
     private void createProperty(Scanner scanner, String sellerEmail) {
         // Generate random 8-digit property ID
@@ -294,76 +300,71 @@ public class CommandHandler {
         System.out.print("Enter property ID to edit: ");
         String propertyId = scanner.nextLine();
 
-        // Find the property by ID
+        // Fetch the property
         Property property = propertyManager.getPropertyById(propertyId);
-        if (property != null) {
-            if (property.getSellerEmail().equals(sellerEmail) || currentUser.getRole().equalsIgnoreCase("Agent")) {
-                if (property.getStatus().equals("Selling")) {
-                    System.out.println("Editing Property: " + propertyId);
+        if (property == null) {
+            System.out.println("Property not found with ID: " + propertyId);
+            return;
+        }
 
-                    // Asking the user what they want to edit
-                    System.out.println("What would you like to edit?");
-                    System.out.println("1. Type");
-                    System.out.println("2. Address");
-                    System.out.println("3. Price");
-                    System.out.println("4. Seller Phone");
-                    System.out.println("5. Status (e.g., change from Selling to Sold)");
+        // Check permission status
+        if ("Approved".equalsIgnoreCase(property.getPermissionStatus())) {
+            System.out.println("Editing Property: " + propertyId);
 
-                    System.out.print("Enter your choice (e.g., 1,2 to change both Type and Address): ");
-                    String choices = scanner.nextLine();
+            // Rest of your property editing logic...
+            System.out.println("What would you like to edit?");
+            System.out.println("1. Type");
+            System.out.println("2. Address");
+            System.out.println("3. Price");
+            System.out.println("4. Seller Phone");
+            System.out.println("5. Status (e.g., change from Selling to Sold)");
 
-                    // Process choices and edit properties
-                    if (choices.contains("1")) {
-                        System.out.print("Enter new type (current: " + property.getType() + "): ");
-                        String newType = scanner.nextLine();
-                        property.setType(newType);
-                    }
+            System.out.print("Enter your choice (e.g., 1,2 to change both Type and Address): ");
+            String choices = scanner.nextLine();
 
-                    if (choices.contains("2")) {
-                        System.out.print("Enter new address (current: " + property.getAddress() + "): ");
-                        String newAddress = scanner.nextLine();
-                        property.setAddress(newAddress);
-                    }
-
-                    if (choices.contains("3")) {
-                        System.out.print("Enter new price (current: " + property.getPrice() + "): ");
-                        double newPrice = scanner.nextDouble();
-                        scanner.nextLine();
-                        property.setPrice(newPrice);
-                    }
-
-                    if (choices.contains("4")) {
-                        System.out.print("Enter new seller phone number (current: " + property.getSellerPhoneNumber() + "): ");
-                        String newPhoneNumber = scanner.nextLine();
-                        property.setSellerPhoneNumber(newPhoneNumber);
-                    }
-
-                    // New feature: Update status (for example, change to 'Sold')
-                    if (choices.contains("5")) {
-                        System.out.print("Enter new status (current: " + property.getStatus() + "): ");
-                        String newStatus = scanner.nextLine();
-                        if (newStatus.equalsIgnoreCase("Sold")) {
-                            property.setStatus("Sold");
-                            System.out.println("Property status updated to 'Sold'.");
-                        } else {
-                            System.out.println("Invalid status. Only 'Sold' is allowed.");
-                        }
-                    }
-
-                    System.out.println("Property updated successfully!");
-
-                    // Optionally, you can save the changes back to the file
-                    propertyManager.saveAllPropertiesToFile();  // Save updated properties back to the file
-                } else {
-                    System.out.println("You can only edit properties with 'Selling' status.");
-                }
-            } else {
-                System.out.println("You are not the owner of this property or do not have the right to edit it.");
+            if (choices.contains("1")) {
+                System.out.print("Enter new type (current: " + property.getType() + "): ");
+                String newType = scanner.nextLine();
+                property.setType(newType);
             }
+
+            if (choices.contains("2")) {
+                System.out.print("Enter new address (current: " + property.getAddress() + "): ");
+                String newAddress = scanner.nextLine();
+                property.setAddress(newAddress);
+            }
+
+            if (choices.contains("3")) {
+                System.out.print("Enter new price (current: " + property.getPrice() + "): ");
+                double newPrice = scanner.nextDouble();
+                scanner.nextLine();
+                property.setPrice(newPrice);
+            }
+
+            if (choices.contains("4")) {
+                System.out.print("Enter new seller phone number (current: " + property.getSellerPhoneNumber() + "): ");
+                String newPhoneNumber = scanner.nextLine();
+                property.setSellerPhoneNumber(newPhoneNumber);
+            }
+
+            if (choices.contains("5")) {
+                System.out.print("Enter new status (current: " + property.getStatus() + "): ");
+                String newStatus = scanner.nextLine();
+                if ("Sold".equalsIgnoreCase(newStatus)) {
+                    property.setStatus("Sold");
+                    System.out.println("Property status updated to 'Sold'.");
+                } else {
+                    System.out.println("Invalid status. Only 'Sold' is allowed.");
+                }
+            }
+
+            System.out.println("Property updated successfully!");
+            propertyManager.saveAllPropertiesToFile();
         } else {
-            System.out.println("Property not found.");
+            System.out.println("Permission to edit this property has not been granted.");
         }
     }
+
     private void viewProperties(Scanner scanner) {
         System.out.println("Enter status to filter by (Selling/Sold/all): ");
         String status = scanner.nextLine();
@@ -420,7 +421,7 @@ public class CommandHandler {
             System.out.println("1. Search Properties");
             System.out.println("2. Contact Seller/Agent");
             System.out.println("3. Make Payment");
-            System.out.println("4. Exit");
+            System.out.println("4. Log Out");
             System.out.print("Enter your choice: ");
 
             int choice = scanner.nextInt();
@@ -433,6 +434,7 @@ public class CommandHandler {
             } else if (choice == 3) {
                 makePayment(scanner, buyerUsername);
             } else if (choice == 4) {
+                System.out.println("Logged out successfully.");
                 break;
             } else {
                 System.out.println("Invalid choice. Please try again.");
@@ -548,15 +550,29 @@ public class CommandHandler {
     private void viewAndApproveEditRequests(Scanner scanner) {
         String filePath = "permissions.txt";
         List<String> updatedRequests = new ArrayList<>();
+        boolean foundRequest = false;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
+            System.out.println("\n--- Pending Requests ---");
             while ((line = reader.readLine()) != null) {
-                System.out.println(line);
-                updatedRequests.add(line);
+                if (line.contains("Seller: " + currentUser.getEmail()) && line.contains("Status: Pending")) {
+                    System.out.println(line);
+                    updatedRequests.add(line);
+                    foundRequest = true;
+                }
             }
+        } catch (FileNotFoundException e) {
+            System.out.println("No pending requests found. Permissions file is missing.");
+            return;
         } catch (IOException e) {
-            System.out.println("Error reading permission requests: " + e.getMessage());
+            System.out.println("Error reading requests: " + e.getMessage());
+            return;
+        }
+
+        if (!foundRequest) {
+            System.out.println("No pending requests for your properties.");
+            return;
         }
 
         System.out.print("Enter the property ID to approve/deny: ");
@@ -564,11 +580,19 @@ public class CommandHandler {
         System.out.print("Approve or Deny (A/D): ");
         String decision = scanner.nextLine().trim();
 
+        boolean requestUpdated = false;
         for (int i = 0; i < updatedRequests.size(); i++) {
             if (updatedRequests.get(i).contains("Property ID: " + propertyId)) {
-                updatedRequests.set(i, updatedRequests.get(i).replace("Pending", decision.equalsIgnoreCase("A") ? "Approved" : "Denied"));
+                updatedRequests.set(i, updatedRequests.get(i).replace("Status: Pending",
+                        decision.equalsIgnoreCase("A") ? "Status: Approved" : "Status: Denied"));
+                requestUpdated = true;
                 break;
             }
+        }
+
+        if (!requestUpdated) {
+            System.out.println("Property ID not found in pending requests.");
+            return;
         }
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
@@ -577,11 +601,13 @@ public class CommandHandler {
                 writer.newLine();
             }
         } catch (IOException e) {
-            System.out.println("Error saving updated permissions: " + e.getMessage());
+            System.out.println("Error saving updated requests: " + e.getMessage());
+            return;
         }
 
         System.out.println("Permission status updated successfully.");
     }
+
 
     private void requestPropertyEdit(Scanner scanner) {
         System.out.print("Enter property ID to edit: ");
@@ -612,6 +638,21 @@ public class CommandHandler {
         }
     }
 
+    public void getPermissionStatus(Scanner scanner) {
+        System.out.print("Enter property ID to check permission status: ");
+        String propertyId = scanner.nextLine();
 
+        Property property = propertyManager.getPropertyById(propertyId);
+        if (property != null) {
+            String status = property.getPermissionStatus();
+            if (status == null || status.isEmpty()) {
+                System.out.println("Permission status: Not set (default status).");
+            } else {
+                System.out.println("Permission status: " + status);
+            }
+        } else {
+            System.out.println("Property not found with ID: " + propertyId);
+        }
+    }
 
 }
