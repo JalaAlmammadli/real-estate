@@ -9,7 +9,6 @@ package assignment3;
 public class Application {
 
 	public static void main(String[] args) {
-		System.out.println("Welcome to the Parallax Real Estate Application!");
-        // Students should write client code here...
+		RealEstateApp.main(args);
 	}
 }
