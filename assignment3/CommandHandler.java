@@ -204,25 +204,6 @@ public class CommandHandler {
         }
     }
 
-
-    private void prepareContract(Scanner scanner) {
-        System.out.print("Enter Property ID to assist with contract preparation: ");
-        String propertyId = scanner.nextLine();
-
-        Property property = propertyManager.getPropertyById(propertyId);
-        if (property != null) {
-            System.out.println("Preparing contract for property: " + propertyId);
-            System.out.println("Property Type: " + property.getType());
-            System.out.println("Property Address: " + property.getAddress());
-            System.out.println("Property Price: " + property.getPrice());
-
-            // Simulate contract preparation process
-            System.out.println("Contract prepared successfully for property: " + propertyId);
-        } else {
-            System.out.println("Property not found with ID: " + propertyId);
-        }
-    }
-
     private void showSellerMenu(Scanner scanner, String sellerEmail) {
         while (true) {
             System.out.println("\n--- Seller Menu ---");
@@ -362,19 +343,6 @@ public class CommandHandler {
             propertyManager.saveAllPropertiesToFile();
         } else {
             System.out.println("Permission to edit this property has not been granted.");
-        }
-    }
-
-    private void viewProperties(Scanner scanner) {
-        System.out.println("Enter status to filter by (Selling/Sold/all): ");
-        String status = scanner.nextLine();
-
-        System.out.println("\n--- Properties List ---");
-        for (Property property : propertyManager.getAllProperties().values()) {
-            if (status.equalsIgnoreCase("all") || property.getStatus().equalsIgnoreCase(status)) {
-                System.out.println(property);
-                System.out.println("---------------------------");
-            }
         }
     }
 
@@ -654,5 +622,4 @@ public class CommandHandler {
             System.out.println("Property not found with ID: " + propertyId);
         }
     }
-
 }
