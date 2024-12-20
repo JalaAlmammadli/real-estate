@@ -6,8 +6,6 @@ import java.util.Map;
 
 public class UserManager {
     private final Map<String, User> users;
-    private final String filePath = "users.txt";
-    private final String messagesFilePath = "messages.txt";
 
     public UserManager() {
         users = new HashMap<>();
@@ -38,6 +36,7 @@ public class UserManager {
 
     // Loads users from the file
     private void loadUsersFromFile() {
+        String filePath = "users.csv";
         File file = new File(filePath);
         if (!file.exists()) {
             return;
@@ -46,12 +45,11 @@ public class UserManager {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length == 4) {
+                String[] parts = line.split(","); // Split the CSV row
+                if (parts.length == 4) { // Ensure all fields are present
                     String username = parts[0];
                     String password = parts[1];
                     String role = parts[2];
-                    String email = parts[3];
                     User user = new User(username, password, role);
                     users.put(username, user);
                 }
@@ -63,15 +61,22 @@ public class UserManager {
 
     // Saves users to the file
     private void saveUsersToFile() {
+        String filePath = "users.csv";
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
             for (User user : users.values()) {
-                writer.write(user.toString());
+                // Write user data as a CSV row
+                writer.write(String.join(",",
+                        user.getUsername(),
+                        user.getPassword(),
+                        user.getRole(),
+                        user.getEmail()));
                 writer.newLine();
             }
         } catch (IOException e) {
             System.out.println("Error saving users to file: " + e.getMessage());
         }
     }
+
 
     // Sends a message from a buyer to a seller
     public void sendMessageToSeller(String buyerUsername, String sellerUsername, String messageContent) {
@@ -90,8 +95,13 @@ public class UserManager {
 
     // Saves a message to the file
     private void saveMessageToFile(String buyerUsername, String sellerUsername, String messageContent) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(messagesFilePath, true))) {
-            writer.write(buyerUsername + " -> " + sellerUsername + ": " + messageContent);
+        String filePath = "messages.csv";
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
+            // Write message data as a CSV row
+            writer.write(String.join(",",
+                    buyerUsername,
+                    sellerUsername,
+                    messageContent));
             writer.newLine();
         } catch (IOException e) {
             System.out.println("Error saving message to file: " + e.getMessage());
@@ -100,7 +110,8 @@ public class UserManager {
 
     // Loads messages from the file
     public void loadMessagesFromFile() {
-        File file = new File(messagesFilePath);
+        String filePath = "messages.csv";
+        File file = new File(filePath);
         if (!file.exists()) {
             return;
         }
@@ -108,7 +119,13 @@ public class UserManager {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                System.out.println(line);
+                String[] parts = line.split(","); // Split the CSV row
+                if (parts.length == 3) { // Ensure all fields are present
+                    String buyerUsername = parts[0];
+                    String sellerUsername = parts[1];
+                    String messageContent = parts[2];
+                    System.out.println("Message from " + buyerUsername + " to " + sellerUsername + ": " + messageContent);
+                }
             }
         } catch (IOException e) {
             System.out.println("Error reading messages from file: " + e.getMessage());
