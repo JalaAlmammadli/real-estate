@@ -6,8 +6,10 @@ public class Property {
     private String address;
     private double price;
     private String status; // E.g., "Selling", "Sold"
+    private String contractStatus = "Not Signed"; // Default status
     private String sellerEmail;
     private String sellerPhoneNumber;
+    private boolean contractSigned; // To track if the contract is signed
 
     // Default constructor
     public Property() {
@@ -99,24 +101,40 @@ public class Property {
         this.sellerPhoneNumber = sellerPhoneNumber;
     }
 
+    public boolean isContractSigned() {
+        return contractSigned;
+    }
+
+    public void setContractSigned(boolean contractSigned) {
+        this.contractSigned = contractSigned;
+    }
+
+    public String getContractStatus() {
+        return contractStatus;
+    }
+
+    public void setContractStatus(String contractStatus) {
+        this.contractStatus = contractStatus;
+    }
+
+
     // toString method for printing property details
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Property ID: ").append(propertyId)
-          .append("\nType: ").append(type)
-          .append("\nAddress: ").append(address)
-          .append("\nPrice: ").append(price)
-          .append("\nStatus: ").append(status);
+                .append("\nType: ").append(type)
+                .append("\nAddress: ").append(address)
+                .append("\nPrice: ").append(price)
+                .append("\nStatus: ").append(status)
+                .append("\nContract Status: ").append(contractStatus);
 
-        // Only print email and phone if they are provided
         if (sellerEmail != null && !sellerEmail.isEmpty()) {
             sb.append("\nSeller Email: ").append(sellerEmail);
         }
         if (sellerPhoneNumber != null && !sellerPhoneNumber.isEmpty()) {
             sb.append("\nSeller Phone: ").append(sellerPhoneNumber);
         }
-
         return sb.toString();
     }
 
