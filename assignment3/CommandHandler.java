@@ -128,19 +128,21 @@ public class CommandHandler {
             }
         }
     }
+
     private void retrieveAccounts() {
         System.out.println("\n--- All Users ---");
         for (User user : userManager.getAllUsers().values()) {
             System.out.println(user);
         }
     }
+
     private void getSellerProperties(Scanner scanner) {
         System.out.print("Enter seller email to retrieve properties: ");
         String sellerEmail = scanner.nextLine().trim();
-    
+
         System.out.println("\n--- Properties of " + sellerEmail + " ---");
         boolean foundProperties = false;
-    
+
         for (Property property : propertyManager.getAllProperties().values()) {
             if (property.getSellerEmail() != null && property.getSellerEmail().equalsIgnoreCase(sellerEmail)) {
                 System.out.println(property);
@@ -148,7 +150,7 @@ public class CommandHandler {
                 foundProperties = true;
             }
         }
-    
+
         if (!foundProperties) {
             System.out.println("No properties found for this seller.");
         }
@@ -188,8 +190,9 @@ public class CommandHandler {
             System.out.println("3. Archive Property");
             System.out.println("4. Mails");
             System.out.println("5. Approve/Deny Requests");
-            System.out.println("6. Log Out");
-            System.out.print("Enter your choice (1, 2, 3, 4, 5 or 6): ");
+            System.out.println("6. Sign Contract");
+            System.out.println("7. Log Out");
+            System.out.print("Enter your choice (1, 2, 3, 4, 5, 6, or 7): ");
 
             if (scanner.hasNextInt()) {
                 int sellerChoice = scanner.nextInt();
@@ -206,6 +209,8 @@ public class CommandHandler {
                 } else if (sellerChoice == 5) {
                     viewAndApproveEditRequests(scanner);
                 } else if (sellerChoice == 6) {
+                    signContract(scanner, sellerEmail);
+                } else if (sellerChoice == 7) {
                     System.out.println("Logged out successfully.");
                     return; // Exits the method, breaking the loop
                 } else {
@@ -217,7 +222,6 @@ public class CommandHandler {
             }
         }
     }
-
 
 
     private void createProperty(Scanner scanner, String sellerEmail) {
@@ -365,7 +369,8 @@ public class CommandHandler {
             System.out.println("1. Search Properties");
             System.out.println("2. Contact Seller/Agent");
             System.out.println("3. Make Payment");
-            System.out.println("4. Log Out");
+            System.out.println("4. Sign Contract");
+            System.out.println("5. Log Out");
             System.out.print("Enter your choice: ");
 
             int choice = scanner.nextInt();
@@ -378,6 +383,8 @@ public class CommandHandler {
             } else if (choice == 3) {
                 makePayment(scanner, buyerUsername);
             } else if (choice == 4) {
+                signContract(scanner, buyerUsername);
+            } else if (choice == 5) {
                 System.out.println("Logged out successfully.");
                 break;
             } else {
@@ -417,7 +424,6 @@ public class CommandHandler {
             System.out.println("Property ID not found.");
         }
     }
-
 
 
     private void contactSellerOrAgent(Scanner scanner, String buyerUsername) {
@@ -596,6 +602,56 @@ public class CommandHandler {
             }
         } else {
             System.out.println("Property not found with ID: " + propertyId);
+        }
+    }
+
+    private void signContract(Scanner scanner, String userEmail) {
+        System.out.print("Enter Property ID for contract signing: ");
+        String propertyId = scanner.nextLine();
+
+        // Fetch the property by its ID
+        Property property = propertyManager.getPropertyById(propertyId);
+        if (property == null) {
+            System.out.println("Property not found.");
+            return;
+        }
+
+        // If the current user is a Buyer
+        if (currentUser.getRole().equalsIgnoreCase("Buyer")) {
+            if (!"Selling".equalsIgnoreCase(property.getStatus())) {
+                System.out.println("This property is not available for signing.");
+                return;
+            }
+
+            if (!"Not Signed".equalsIgnoreCase(property.getContractStatus())) {
+                System.out.println("Contract has already been signed or finalized.");
+                return;
+            }
+
+            property.setContractStatus("Signed by Buyer"); // Update contract status
+            propertyManager.saveAllPropertiesToFile(); // Persist changes
+            System.out.println("Contract signed successfully as Buyer.");
+        }
+        // If the current user is a Seller
+        else if (currentUser.getRole().equalsIgnoreCase("Seller")) {
+            if (!property.getSellerEmail().equalsIgnoreCase(userEmail)) {
+                System.out.println("You are not authorized to sign this contract.");
+                return;
+            }
+
+            if (!"Signed by Buyer".equalsIgnoreCase(property.getContractStatus())) {
+                System.out.println("Buyer has not signed the contract yet.");
+                return;
+            }
+
+            property.setContractStatus("Signed by Both"); // Update contract status
+            property.setStatus("Sold"); // Finalize the sale
+            propertyManager.saveAllPropertiesToFile(); // Persist changes
+            System.out.println("Contract finalized successfully as Seller.");
+        }
+        // Invalid user role
+        else {
+            System.out.println("Only buyers and sellers can sign contracts.");
         }
     }
 }
