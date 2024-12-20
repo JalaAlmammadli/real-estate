@@ -42,65 +42,46 @@ public class PropertyManager {
 
     // Method to save property data to the file
     private void savePropertyToFile(Property property) {
-        String filePath = "PropertyCollection.txt";
+        String filePath = "PropertyCollection.csv";
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
-            writer.write("Property ID: " + property.getPropertyId());
-            writer.write("\nType: " + property.getType());
-            writer.write("\nAddress: " + property.getAddress());
-            writer.write("\nPrice: " + property.getPrice());
-            writer.write("\nStatus: " + property.getStatus());
-            writer.write("\nSeller Email: " + property.getSellerEmail());
-            writer.write("\nSeller Phone: " + property.getSellerPhoneNumber());
-            writer.write("\nContract Signed: " + property.isContractSigned());
-            writer.write("\n-----------------------------\n"); // Separator between properties
+            // Write property data as a CSV row
+            writer.write(String.join(",",
+                    property.getPropertyId(),
+                    property.getType(),
+                    property.getAddress(),
+                    String.valueOf(property.getPrice()),
+                    property.getStatus(),
+                    property.getSellerEmail(),
+                    property.getSellerPhoneNumber(),
+                    property.getContractStatus()));
+            writer.newLine();
         } catch (IOException e) {
             System.out.println("An error occurred while saving the property to the file.");
             e.printStackTrace();
         }
     }
 
-    // Method to load all properties from the file
     private void loadPropertiesFromFile() {
-        String filePath = "PropertyCollection.txt";
+        String filePath = "PropertyCollection.csv";
         File file = new File(filePath);
 
         if (file.exists()) {
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 String line;
-                Property property = null;
                 while ((line = reader.readLine()) != null) {
-                    if (line.startsWith("Property ID: ")) {
-                        // Save the previous property if exists
-                        if (property != null) {
-                            properties.put(property.getPropertyId(), property);
-                        }
-                        // Create a new property for the next set of data
-                        String propertyId = line.substring("Property ID: ".length());
-                        property = new Property(propertyId, "", "", 0.0, "", "", ""); // Initialize property with ID
-                    } else if (line.startsWith("Type: ")) {
-                        property.setType(line.substring("Type: ".length()));
-                    } else if (line.startsWith("Address: ")) {
-                        property.setAddress(line.substring("Address: ".length()));
-                    } else if (line.startsWith("Price: ")) {
-                        property.setPrice(Double.parseDouble(line.substring("Price: ".length())));
-                    } else if (line.startsWith("Status: ")) {
-                        property.setStatus(line.substring("Status: ".length()));
+                    String[] parts = line.split(","); // Split the CSV row
+                    if (parts.length == 8) { // Ensure all fields are present
+                        Property property = new Property(
+                                parts[0], // propertyId
+                                parts[1], // type
+                                parts[2], // address
+                                Double.parseDouble(parts[3]), // price
+                                parts[4], // status
+                                parts[5], // sellerEmail
+                                parts[6]); // sellerPhoneNumber
+                        property.setContractStatus(parts[7]); // contractStatus
+                        properties.put(property.getPropertyId(), property);
                     }
-                    else if (line.startsWith("Contract Status: ")) {
-                        property.setContractStatus(line.substring("Contract Status: ".length()));
-                    }
-                    else if (line.startsWith("Seller Email: ")) {
-                        property.setSellerEmail(line.substring("Seller Email: ".length()));
-                    } else if (line.startsWith("Seller Phone: ")) {
-                        property.setSellerPhoneNumber(line.substring("Seller Phone: ".length()));
-                    }
-                    else if (line.startsWith("Contract Signed: ")) {
-                        property.setContractSigned(Boolean.parseBoolean(line.substring("Contract Signed: ".length())));
-                    }
-                }
-                // Add the last property if exists
-                if (property != null) {
-                    properties.put(property.getPropertyId(), property);
                 }
             } catch (IOException e) {
                 System.out.println("An error occurred while reading the properties from the file.");
@@ -111,25 +92,27 @@ public class PropertyManager {
 
     // Update the method to overwrite the file whenever properties are changed
     public void saveAllPropertiesToFile() {
-        String filePath = "PropertyCollection.txt";
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {  // Overwrite the file each time
+        String filePath = "PropertyCollection.csv";
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
             for (Property property : properties.values()) {
-                writer.write("Property ID: " + property.getPropertyId());
-                writer.write("\nType: " + property.getType());
-                writer.write("\nAddress: " + property.getAddress());
-                writer.write("\nPrice: " + property.getPrice());
-                writer.write("\nStatus: " + property.getStatus());
-                writer.write("\nContract Status: " + property.getContractStatus());
-                writer.write("\nSeller Email: " + property.getSellerEmail());
-                writer.write("\nSeller Phone: " + property.getSellerPhoneNumber());
-                writer.write("\n-----------------------------\n");
+                // Write property data as a CSV row
+                writer.write(String.join(",",
+                        property.getPropertyId(),
+                        property.getType(),
+                        property.getAddress(),
+                        String.valueOf(property.getPrice()),
+                        property.getStatus(),
+                        property.getSellerEmail(),
+                        property.getSellerPhoneNumber(),
+                        property.getContractStatus()));
+                writer.newLine();
             }
         } catch (IOException e) {
             System.out.println("An error occurred while saving properties to the file.");
             e.printStackTrace();
         }
     }
-    
+
     public Property getPropertyBySellerEmail(String sellerEmail) {
         for (Property property : properties.values()) {
             if (property.getSellerEmail().equalsIgnoreCase(sellerEmail)) {
