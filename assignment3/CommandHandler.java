@@ -335,13 +335,20 @@ public class CommandHandler {
         System.out.println("Checking messages for: " + sellerEmail);
 
         boolean hasMessages = false;
-        try (BufferedReader reader = new BufferedReader(new FileReader("messages.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("messages.csv"))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                // Compare emails case-insensitively and trim spaces
-                if (line.toLowerCase().contains("to: " + sellerEmail.trim().toLowerCase())) {
-                    hasMessages = true;
-                    System.out.println(line);
+                String[] parts = line.split(","); // Split the CSV row
+                if (parts.length == 3) { // Ensure all fields are present
+                    String buyerUsername = parts[0];
+                    String sellerEmailFromFile = parts[1];
+                    String messageContent = parts[2];
+
+                    // Compare emails case-insensitively and trim spaces
+                    if (sellerEmailFromFile.equalsIgnoreCase(sellerEmail.trim())) {
+                        hasMessages = true;
+                        System.out.println("From: " + buyerUsername + " | Message: " + messageContent);
+                    }
                 }
             }
 
@@ -445,10 +452,13 @@ public class CommandHandler {
     }
 
     private void saveMessageToFile(String buyerUsername, User seller, String messageContent) {
-        String messagesFilePath = "messages.txt";
-
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(messagesFilePath, true))) {
-            writer.write("From: " + buyerUsername + " -> To: " + seller.getEmail() + " | Message: " + messageContent);
+        String filePath = "messages.csv";
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
+            // Write message data as a CSV row
+            writer.write(String.join(",",
+                    buyerUsername,
+                    seller.getEmail(),
+                    messageContent));
             writer.newLine();
         } catch (IOException e) {
             System.out.println("Error saving message to file: " + e.getMessage());
@@ -498,7 +508,7 @@ public class CommandHandler {
     }
 
     private void viewAndApproveEditRequests(Scanner scanner) {
-        String filePath = "permissions.txt";
+        String filePath = "permissions.csv";
         List<String> updatedRequests = new ArrayList<>();
         boolean foundRequest = false;
 
@@ -506,9 +516,10 @@ public class CommandHandler {
             String line;
             System.out.println("\n--- Pending Requests ---");
             while ((line = reader.readLine()) != null) {
-                if (line.contains("Seller: " + currentUser.getEmail()) && line.contains("Status: Pending")) {
-                    System.out.println(line);
-                    updatedRequests.add(line);
+                String[] parts = line.split(","); // Split the CSV row
+                if (parts.length == 4 && parts[0].equalsIgnoreCase(currentUser.getEmail()) && parts[3].equalsIgnoreCase("Pending")) {
+                    System.out.println("Property ID: " + parts[1] + " | Agent: " + parts[2] + " | Status: " + parts[3]);
+                    updatedRequests.add(String.join(",", parts)); // Keep the request as a CSV row
                     foundRequest = true;
                 }
             }
@@ -547,7 +558,7 @@ public class CommandHandler {
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
             for (String request : updatedRequests) {
-                writer.write(request);
+                writer.write(request); // Write each updated request as a CSV row
                 writer.newLine();
             }
         } catch (IOException e) {
@@ -579,9 +590,14 @@ public class CommandHandler {
     }
 
     private void savePermissionRequest(String sellerEmail, String propertyId) {
-        String filePath = "permissions.txt";
+        String filePath = "permissions.csv";
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
-            writer.write("Seller: " + sellerEmail + " | Property ID: " + propertyId + " | Agent: " + currentUser.getEmail() + " | Status: Pending");
+            // Write permission request as a CSV row
+            writer.write(String.join(",",
+                    sellerEmail,
+                    propertyId,
+                    currentUser.getEmail(),
+                    "Pending")); // Default status
             writer.newLine();
         } catch (IOException e) {
             System.out.println("Error saving permission request: " + e.getMessage());
