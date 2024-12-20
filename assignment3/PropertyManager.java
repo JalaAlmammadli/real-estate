@@ -51,6 +51,7 @@ public class PropertyManager {
             writer.write("\nStatus: " + property.getStatus());
             writer.write("\nSeller Email: " + property.getSellerEmail());
             writer.write("\nSeller Phone: " + property.getSellerPhoneNumber());
+            writer.write("\nContract Signed: " + property.isContractSigned());
             writer.write("\n-----------------------------\n"); // Separator between properties
         } catch (IOException e) {
             System.out.println("An error occurred while saving the property to the file.");
@@ -84,10 +85,17 @@ public class PropertyManager {
                         property.setPrice(Double.parseDouble(line.substring("Price: ".length())));
                     } else if (line.startsWith("Status: ")) {
                         property.setStatus(line.substring("Status: ".length()));
-                    } else if (line.startsWith("Seller Email: ")) {
+                    }
+                    else if (line.startsWith("Contract Status: ")) {
+                        property.setContractStatus(line.substring("Contract Status: ".length()));
+                    }
+                    else if (line.startsWith("Seller Email: ")) {
                         property.setSellerEmail(line.substring("Seller Email: ".length()));
                     } else if (line.startsWith("Seller Phone: ")) {
                         property.setSellerPhoneNumber(line.substring("Seller Phone: ".length()));
+                    }
+                    else if (line.startsWith("Contract Signed: ")) {
+                        property.setContractSigned(Boolean.parseBoolean(line.substring("Contract Signed: ".length())));
                     }
                 }
                 // Add the last property if exists
@@ -111,6 +119,7 @@ public class PropertyManager {
                 writer.write("\nAddress: " + property.getAddress());
                 writer.write("\nPrice: " + property.getPrice());
                 writer.write("\nStatus: " + property.getStatus());
+                writer.write("\nContract Status: " + property.getContractStatus());
                 writer.write("\nSeller Email: " + property.getSellerEmail());
                 writer.write("\nSeller Phone: " + property.getSellerPhoneNumber());
                 writer.write("\n-----------------------------\n");
