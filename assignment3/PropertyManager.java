@@ -69,23 +69,24 @@ public class PropertyManager {
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    String[] parts = line.split(","); // Split the CSV row
+                    String[] parts = line.split(","); // Split by commas for CSV
                     if (parts.length == 8) { // Ensure all fields are present
-                        Property property = new Property(
-                                parts[0], // propertyId
-                                parts[1], // type
-                                parts[2], // address
-                                Double.parseDouble(parts[3]), // price
-                                parts[4], // status
-                                parts[5], // sellerEmail
-                                parts[6]); // sellerPhoneNumber
-                        property.setContractStatus(parts[7]); // contractStatus
-                        properties.put(property.getPropertyId(), property);
+                        String propertyId = parts[0].trim();
+                        String type = parts[1].trim();
+                        String address = parts[2].trim(); // Full address is a single field
+                        double price = Double.parseDouble(parts[3].trim());
+                        String status = parts[4].trim();
+                        String sellerEmail = parts[5].trim();
+                        String sellerPhoneNumber = parts[6].trim();
+                        String contractStatus = parts[7].trim();
+
+                        Property property = new Property(propertyId, type, address, price, status, sellerEmail, sellerPhoneNumber);
+                        property.setContractStatus(contractStatus); // Set contract status
+                        properties.put(propertyId, property); // Store in the map
                     }
                 }
             } catch (IOException e) {
-                System.out.println("An error occurred while reading the properties from the file.");
-                e.printStackTrace();
+                System.out.println("Error reading the properties file: " + e.getMessage());
             }
         }
     }
