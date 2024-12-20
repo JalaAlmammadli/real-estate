@@ -143,6 +143,7 @@ public class CommandHandler {
         System.out.println("\n--- Properties of " + sellerEmail + " ---");
         boolean foundProperties = false;
 
+        // Retrieve all properties from PropertyManager
         for (Property property : propertyManager.getAllProperties().values()) {
             if (property.getSellerEmail() != null && property.getSellerEmail().equalsIgnoreCase(sellerEmail)) {
                 System.out.println(property);
