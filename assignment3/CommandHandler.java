@@ -162,7 +162,8 @@ public class CommandHandler {
             System.out.println("\n--- Agent Menu ---");
             System.out.println("1. Request Property Edit");
             System.out.println("2. Edit Properties");
-            System.out.println("3. Log Out");
+            System.out.println("3. Help with Contract");
+            System.out.println("4. Log Out");
             System.out.print("Enter your choice: ");
 
             int choice = scanner.nextInt();
@@ -175,6 +176,8 @@ public class CommandHandler {
                 String sellerEmail = scanner.nextLine();
                 editProperty(scanner, sellerEmail); // Use CommandHandler's editProperty
             } else if (choice == 3) {
+                prepareContract(scanner);
+            } else if (choice == 4) {
                 System.out.println("Logged out successfully.");
                 break;
             } else {
@@ -510,25 +513,22 @@ public class CommandHandler {
 
     private void viewAndApproveEditRequests(Scanner scanner) {
         String filePath = "permissions.csv";
-        List<String> updatedRequests = new ArrayList<>();
+        List<String[]> requests = new ArrayList<>();
         boolean foundRequest = false;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             System.out.println("\n--- Pending Requests ---");
             while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(","); // Split the CSV row
+                String[] parts = line.split(","); // Split by commas
                 if (parts.length == 4 && parts[0].equalsIgnoreCase(currentUser.getEmail()) && parts[3].equalsIgnoreCase("Pending")) {
                     System.out.println("Property ID: " + parts[1] + " | Agent: " + parts[2] + " | Status: " + parts[3]);
-                    updatedRequests.add(String.join(",", parts)); // Keep the request as a CSV row
+                    requests.add(parts); // Store the pending requests
                     foundRequest = true;
                 }
             }
-        } catch (FileNotFoundException e) {
-            System.out.println("No pending requests found. Permissions file is missing.");
-            return;
         } catch (IOException e) {
-            System.out.println("Error reading requests: " + e.getMessage());
+            System.out.println("Error reading permissions file: " + e.getMessage());
             return;
         }
 
@@ -543,10 +543,9 @@ public class CommandHandler {
         String decision = scanner.nextLine().trim();
 
         boolean requestUpdated = false;
-        for (int i = 0; i < updatedRequests.size(); i++) {
-            if (updatedRequests.get(i).contains("Property ID: " + propertyId)) {
-                updatedRequests.set(i, updatedRequests.get(i).replace("Status: Pending",
-                        decision.equalsIgnoreCase("A") ? "Status: Approved" : "Status: Denied"));
+        for (String[] request : requests) {
+            if (request[1].equals(propertyId)) { // Match property ID
+                request[3] = decision.equalsIgnoreCase("A") ? "Approved" : "Denied"; // Update status
                 requestUpdated = true;
                 break;
             }
@@ -558,50 +557,61 @@ public class CommandHandler {
         }
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-            for (String request : updatedRequests) {
-                writer.write(request); // Write each updated request as a CSV row
+            for (String[] request : requests) {
+                writer.write(String.join(",", request)); // Write updated rows
                 writer.newLine();
             }
         } catch (IOException e) {
-            System.out.println("Error saving updated requests: " + e.getMessage());
-            return;
+            System.out.println("Error saving updated permissions: " + e.getMessage());
         }
 
         System.out.println("Permission status updated successfully.");
     }
-
 
     private void requestPropertyEdit(Scanner scanner) {
         System.out.print("Enter property ID to edit: ");
         String propertyId = scanner.nextLine().trim();
         Property property = propertyManager.getPropertyById(propertyId);
 
-        if (property != null) {
-            String sellerEmail = property.getSellerEmail();
-            if (sellerEmail.isEmpty()) {
-                System.out.println("Error: This property has no assigned seller.");
-                return;
-            }
-
-            savePermissionRequest(sellerEmail, propertyId);
-            System.out.println("Edit request sent to the seller: " + sellerEmail);
-        } else {
+        if (property == null) {
             System.out.println("Property not found.");
+            return;
         }
+
+        String sellerEmail = property.getSellerEmail();
+        if (sellerEmail == null || sellerEmail.isEmpty()) {
+            System.out.println("This property has no assigned seller.");
+            return;
+        }
+
+        savePermissionRequest(sellerEmail, propertyId);
+        System.out.println("Edit request sent to the seller: " + sellerEmail);
     }
 
     private void savePermissionRequest(String sellerEmail, String propertyId) {
         String filePath = "permissions.csv";
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
-            // Write permission request as a CSV row
-            writer.write(String.join(",",
-                    sellerEmail,
-                    propertyId,
-                    currentUser.getEmail(),
-                    "Pending")); // Default status
+            writer.write(String.join(",", sellerEmail, propertyId, currentUser.getEmail(), "Pending"));
             writer.newLine();
         } catch (IOException e) {
             System.out.println("Error saving permission request: " + e.getMessage());
+        }
+    }
+
+    // agent helping with contract
+    private void prepareContract(Scanner scanner) {
+        System.out.print("Enter Property ID to assist with contract preparation: ");
+        String propertyId = scanner.nextLine();
+        Property property = propertyManager.getPropertyById(propertyId);
+        if (property != null) {
+            System.out.println("Preparing contract for property: " + propertyId);
+            System.out.println("Property Type: " + property.getType());
+            System.out.println("Property Address: " + property.getAddress());
+            System.out.println("Property Price: " + property.getPrice());
+            // Simulate contract preparation process
+            System.out.println("Contract prepared successfully for property: " + propertyId);
+        } else {
+            System.out.println("Property not found with ID: " + propertyId);
         }
     }
 
