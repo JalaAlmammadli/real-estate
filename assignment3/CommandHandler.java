@@ -110,7 +110,8 @@ public class CommandHandler {
             System.out.println("\n--- Admin Menu ---");
             System.out.println("1. Retrieve Accounts");
             System.out.println("2. Get Seller Properties");
-            System.out.println("3. Log Out");
+            System.out.println("3. View All Properties");
+            System.out.println("4. Log Out");
             System.out.print("Enter your choice: ");
 
             int choice = scanner.nextInt();
@@ -120,7 +121,9 @@ public class CommandHandler {
                 retrieveAccounts();
             } else if (choice == 2) {
                 getSellerProperties(scanner);
-            } else if (choice == 3) {
+            } else if (choice == 3) { // Handle the new option
+                viewAllProperties();
+            } else if (choice == 4) {
                 System.out.println("Logged out successfully.");
                 break;
             } else {
@@ -156,14 +159,28 @@ public class CommandHandler {
             System.out.println("No properties found for this seller.");
         }
     }
+    // Method to display all properties
+    private void viewAllProperties() {
+        System.out.println("\n--- All Properties ---");
+        if (propertyManager.getAllProperties().isEmpty()) {
+            System.out.println("No properties found.");
+            return;
+        }
 
+        for (Property property : propertyManager.getAllProperties().values()) {
+            System.out.println(property);
+            System.out.println("---------------------------");
+        }
+    }
     private void showAgentMenu(Scanner scanner) {
         while (true) {
             System.out.println("\n--- Agent Menu ---");
             System.out.println("1. Request Property Edit");
             System.out.println("2. Edit Properties");
             System.out.println("3. Help with Contract");
-            System.out.println("4. Log Out");
+            System.out.println("4. View All Properties");
+            System.out.println("5. View Managed Properties");
+            System.out.println("6. Log Out");
             System.out.print("Enter your choice: ");
 
             int choice = scanner.nextInt();
@@ -173,11 +190,17 @@ public class CommandHandler {
                 requestPropertyEdit(scanner);
             } else if (choice == 2) {
                 System.out.print("Enter your email for validation: ");
-                String sellerEmail = scanner.nextLine();
-                editProperty(scanner, sellerEmail); // Use CommandHandler's editProperty
+                String agentEmail = scanner.nextLine();
+                editProperty(scanner, agentEmail);
             } else if (choice == 3) {
                 prepareContract(scanner);
             } else if (choice == 4) {
+                viewAllPropertiesForAgent();
+            } else if (choice == 5) { // New option
+                System.out.print("Enter your email to view managed properties: ");
+                String agentEmail = scanner.nextLine();
+                viewManagedProperties(agentEmail);
+            } else if (choice == 6) {
                 System.out.println("Logged out successfully.");
                 break;
             } else {
@@ -192,11 +215,13 @@ public class CommandHandler {
             System.out.println("1. Create Property");
             System.out.println("2. Edit Property");
             System.out.println("3. Archive Property");
-            System.out.println("4. Mails");
-            System.out.println("5. Approve/Deny Requests");
-            System.out.println("6. Sign Contract");
-            System.out.println("7. Log Out");
-            System.out.print("Enter your choice (1, 2, 3, 4, 5, 6, or 7): ");
+            System.out.println("4. View All Properties");
+            System.out.println("5. View My Properties");
+            System.out.println("6. Mails");
+            System.out.println("7. Approve/Deny Requests");
+            System.out.println("8. Sign Contract");
+            System.out.println("9. Log Out");
+            System.out.print("Enter your choice (1, 2, 3, 4, 5, 6, 7, 8 or 9): ");
 
             if (scanner.hasNextInt()) {
                 int sellerChoice = scanner.nextInt();
@@ -208,13 +233,17 @@ public class CommandHandler {
                     editProperty(scanner, sellerEmail);
                 } else if (sellerChoice == 3) {
                     showArchivedProperties(sellerEmail);
-                } else if (sellerChoice == 4) {
-                    showMessagesForSellerFromFile(sellerEmail);
-                } else if (sellerChoice == 5) {
-                    viewAndApproveEditRequests(scanner);
+                } else if (sellerChoice == 4) { // New option
+                    viewAllPropertiesForSeller();
+                } else if (sellerChoice == 5) { // New option
+                    viewMyProperties(sellerEmail);
                 } else if (sellerChoice == 6) {
-                    signContract(scanner, sellerEmail);
+                    showMessagesForSellerFromFile(sellerEmail);
                 } else if (sellerChoice == 7) {
+                    viewAndApproveEditRequests(scanner);
+                } else if (sellerChoice == 8) {
+                    signContract(scanner, sellerEmail);
+                } else if (sellerChoice == 9) {
                     System.out.println("Logged out successfully.");
                     return; // Exits the method, breaking the loop
                 } else {
@@ -366,15 +395,47 @@ public class CommandHandler {
             }
         }
     }
+    // Method for the seller to view all properties
+    private void viewAllPropertiesForSeller() {
+        System.out.println("\n--- All Properties ---");
+        if (propertyManager.getAllProperties().isEmpty()) {
+            System.out.println("No properties found.");
+            return;
+        }
+
+        for (Property property : propertyManager.getAllProperties().values()) {
+            System.out.println(property);
+            System.out.println("---------------------------");
+        }
+    }
+    // Method for the seller to view their own properties
+    private void viewMyProperties(String sellerEmail) {
+        System.out.println("\n--- My Properties ---");
+        boolean foundProperties = false;
+
+        for (Property property : propertyManager.getAllProperties().values()) {
+            if (property.getSellerEmail() != null && property.getSellerEmail().equalsIgnoreCase(sellerEmail)) {
+                System.out.println(property);
+                System.out.println("---------------------------");
+                foundProperties = true;
+            }
+        }
+
+        if (!foundProperties) {
+            System.out.println("You do not own any properties.");
+        }
+    }
+
 
     private void showBuyerMenu(Scanner scanner, String buyerUsername) {
         while (true) {
             System.out.println("\n--- Buyer Menu ---");
             System.out.println("1. Search Properties");
-            System.out.println("2. Contact Seller/Agent");
-            System.out.println("3. Make Payment");
-            System.out.println("4. Sign Contract");
-            System.out.println("5. Log Out");
+            System.out.println("2. View All Properties"); // New option
+            System.out.println("3. Contact Seller/Agent");
+            System.out.println("4. Make Payment");
+            System.out.println("5. Sign Contract");
+            System.out.println("6. Log Out");
             System.out.print("Enter your choice: ");
 
             int choice = scanner.nextInt();
@@ -382,13 +443,15 @@ public class CommandHandler {
 
             if (choice == 1) {
                 searchProperties(scanner);
-            } else if (choice == 2) {
-                contactSellerOrAgent(scanner, buyerUsername);
+            } else if (choice == 2) { // Handle the new option
+                viewAllPropertiesForBuyer();
             } else if (choice == 3) {
-                makePayment(scanner, buyerUsername);
+                contactSellerOrAgent(scanner, buyerUsername);
             } else if (choice == 4) {
-                signContract(scanner, buyerUsername);
+                makePayment(scanner, buyerUsername);
             } else if (choice == 5) {
+                signContract(scanner, buyerUsername);
+            } else if (choice == 6) {
                 System.out.println("Logged out successfully.");
                 break;
             } else {
@@ -502,6 +565,19 @@ public class CommandHandler {
         }
     }
 
+    // Method to display all properties for the buyer
+    private void viewAllPropertiesForBuyer() {
+        System.out.println("\n--- All Properties ---");
+        if (propertyManager.getAllProperties().isEmpty()) {
+            System.out.println("No properties found.");
+            return;
+        }
+
+        for (Property property : propertyManager.getAllProperties().values()) {
+            System.out.println(property);
+            System.out.println("---------------------------");
+        }
+    }
     private String generatePropertyId() {
         Random random = new Random();
         StringBuilder propertyId = new StringBuilder();
@@ -620,6 +696,47 @@ public class CommandHandler {
             System.out.println("Contract prepared successfully for property: " + propertyId);
         } else {
             System.out.println("Property not found with ID: " + propertyId);
+        }
+    }
+    // Method to display all properties for the agent
+    private void viewAllPropertiesForAgent() {
+        System.out.println("\n--- All Properties ---");
+        if (propertyManager.getAllProperties().isEmpty()) {
+            System.out.println("No properties found.");
+            return;
+        }
+
+        for (Property property : propertyManager.getAllProperties().values()) {
+            System.out.println(property);
+            System.out.println("---------------------------");
+        }
+    }
+    // Method to display all properties an agent has permission to edit
+    private void viewManagedProperties(String agentEmail) {
+        System.out.println("\n--- Managed Properties ---");
+        boolean foundProperties = false;
+
+        String filePath = "permissions.csv";
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(","); // Split CSV row
+                if (parts.length == 4 && parts[2].equalsIgnoreCase(agentEmail) && parts[3].equalsIgnoreCase("Approved")) {
+                    // Fetch property by property ID
+                    Property property = propertyManager.getPropertyById(parts[1]);
+                    if (property != null) {
+                        System.out.println(property);
+                        System.out.println("---------------------------");
+                        foundProperties = true;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading permissions file: " + e.getMessage());
+        }
+
+        if (!foundProperties) {
+            System.out.println("You do not have permission to edit any properties.");
         }
     }
 
