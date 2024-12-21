@@ -480,6 +480,8 @@ public class CommandHandler {
         String status = scanner.nextLine().trim();
 
         System.out.println("\n--- Search Results ---");
+        boolean foundAny = false; // Track matches
+
         for (Property property : propertyManager.getAllProperties().values()) {
             boolean matches = true;
 
@@ -498,7 +500,12 @@ public class CommandHandler {
             if (matches) {
                 System.out.println(property);
                 System.out.println("---------------------------");
+                foundAny = true; // Mark as found
             }
+        }
+
+        if (!foundAny) {
+            System.out.println("No properties found with this criteria."); // Print message for no matches
         }
     }
 
