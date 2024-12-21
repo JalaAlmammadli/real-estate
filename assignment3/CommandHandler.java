@@ -261,7 +261,7 @@ public class CommandHandler {
         System.out.println("Property created successfully with ID: " + propertyId);
     }
 
-    private void editProperty(Scanner scanner, String sellerEmail) {
+    private void editProperty(Scanner scanner, String agentEmail) {
         System.out.print("Enter property ID to edit: ");
         String propertyId = scanner.nextLine();
 
@@ -272,11 +272,9 @@ public class CommandHandler {
             return;
         }
 
-        // Check permission status
-        if ("Approved".equalsIgnoreCase(property.getPermissionStatus())) {
+        // Check if the agent has permission
+        if (propertyManager.hasPermissionForProperty(property.getSellerEmail(), propertyId, agentEmail)) {
             System.out.println("Editing Property: " + propertyId);
-
-            // Rest of your property editing logic...
             System.out.println("What would you like to edit?");
             System.out.println("1. Type");
             System.out.println("2. Address");
@@ -302,7 +300,7 @@ public class CommandHandler {
             if (choices.contains("3")) {
                 System.out.print("Enter new price (current: " + property.getPrice() + "): ");
                 double newPrice = scanner.nextDouble();
-                scanner.nextLine();
+                scanner.nextLine(); // Consume the newline
                 property.setPrice(newPrice);
             }
 
@@ -315,12 +313,7 @@ public class CommandHandler {
             if (choices.contains("5")) {
                 System.out.print("Enter new status (current: " + property.getStatus() + "): ");
                 String newStatus = scanner.nextLine();
-                if ("Sold".equalsIgnoreCase(newStatus)) {
-                    property.setStatus("Sold");
-                    System.out.println("Property status updated to 'Sold'.");
-                } else {
-                    System.out.println("Invalid status. Only 'Sold' is allowed.");
-                }
+                property.setStatus(newStatus);
             }
 
             System.out.println("Property updated successfully!");
@@ -546,12 +539,14 @@ public class CommandHandler {
 
         System.out.print("Enter the property ID to approve/deny: ");
         String propertyId = scanner.nextLine().trim();
+        System.out.print("Enter the agent's email: "); // Ask for agent email
+        String agentEmail = scanner.nextLine().trim();
         System.out.print("Approve or Deny (A/D): ");
         String decision = scanner.nextLine().trim();
 
         boolean requestUpdated = false;
         for (String[] request : requests) {
-            if (request[1].equals(propertyId)) { // Match property ID
+            if (request[1].equals(propertyId) && request[2].equalsIgnoreCase(agentEmail)) { // Match property ID and agent email
                 request[3] = decision.equalsIgnoreCase("A") ? "Approved" : "Denied"; // Update status
                 requestUpdated = true;
                 break;
@@ -559,7 +554,7 @@ public class CommandHandler {
         }
 
         if (!requestUpdated) {
-            System.out.println("Property ID not found in pending requests.");
+            System.out.println("Property ID and Agent email combination not found in pending requests.");
             return;
         }
 
@@ -570,12 +565,16 @@ public class CommandHandler {
             }
         } catch (IOException e) {
             System.out.println("Error saving updated permissions: " + e.getMessage());
+            return;
         }
 
         System.out.println("Permission status updated successfully.");
     }
 
     private void requestPropertyEdit(Scanner scanner) {
+        System.out.print("Enter your email: "); // Ask agent for email
+        String agentEmail = scanner.nextLine().trim();
+
         System.out.print("Enter property ID to edit: ");
         String propertyId = scanner.nextLine().trim();
         Property property = propertyManager.getPropertyById(propertyId);
@@ -591,14 +590,16 @@ public class CommandHandler {
             return;
         }
 
-        savePermissionRequest(sellerEmail, propertyId);
+        // Pass agentEmail as the third argument
+        savePermissionRequest(sellerEmail, propertyId, agentEmail);
         System.out.println("Edit request sent to the seller: " + sellerEmail);
     }
 
-    private void savePermissionRequest(String sellerEmail, String propertyId) {
+    private void savePermissionRequest(String sellerEmail, String propertyId, String agentEmail) {
         String filePath = "permissions.csv";
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
-            writer.write(String.join(",", sellerEmail, propertyId, currentUser.getEmail(), "Pending"));
+            // Write seller email, property ID, agent email, and status ("Pending") to the file
+            writer.write(String.join(",", sellerEmail, propertyId, agentEmail, "Pending"));
             writer.newLine();
         } catch (IOException e) {
             System.out.println("Error saving permission request: " + e.getMessage());
