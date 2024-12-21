@@ -116,10 +116,30 @@ public class PropertyManager {
 
     public Property getPropertyBySellerEmail(String sellerEmail) {
         for (Property property : properties.values()) {
-            if (property.getSellerEmail().equalsIgnoreCase(sellerEmail)) {
+            if (property.getSellerEmail() != null && property.getSellerEmail().equalsIgnoreCase(sellerEmail)) {
                 return property;  // Return the property if the seller's email matches
             }
         }
         return null;  // Return null if no property found with the given seller's email
+    }
+
+    // New Method to Check Permission for a Property ID
+    public boolean hasPermissionForProperty(String sellerEmail, String propertyId, String agentEmail) {
+        String filePath = "permissions.csv";
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(","); // Split CSV row
+                if (parts.length == 4 && parts[0].equalsIgnoreCase(sellerEmail) &&
+                        parts[1].equalsIgnoreCase(propertyId) &&
+                        parts[2].equalsIgnoreCase(agentEmail) &&
+                        parts[3].equalsIgnoreCase("Approved")) {
+                    return true;  // Permission found and approved
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading permissions file: " + e.getMessage());
+        }
+        return false;  // Default to no permission
     }
 }
