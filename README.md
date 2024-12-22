@@ -50,3 +50,10 @@ This follows the Open-Closed Principle (OCP), which means the system can grow by
 2) Martin, R. C. (2002). Agile Software Development: Principles, Patterns, and Practices. Pearson.
 3) Beck, K. (1999). Extreme Programming Explained: Embrace Change. Addison-Wesley.
 
+
+
+Fariz video: https://adauniversity-my.sharepoint.com/personal/fibrahimov19866_ada_edu_az/_layouts/15/stream.aspx?id=%2Fpersonal%2Ffibrahimov19866%5Fada%5Fedu%5Faz%2FDocuments%2Fbandicam%202024%2D12%2D22%2012%2D34%2D39%2D127%2Emp4&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2E58b83c44%2D9894%2D4bbb%2Db471%2D8d95b8169367&isDarkMode=true
+
+
+[AI DECLARATION (1) (1) 2.docx.zip](https://github.com/user-attachments/files/18223014/AI.DECLARATION.1.1.2.docx.zip)
+
