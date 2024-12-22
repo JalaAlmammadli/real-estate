@@ -38,6 +38,7 @@ public class Admin {
         }
     }
 
+//retrieving accounts
     private void retrieveAccounts() {
         System.out.println("\n--- All Users ---");
         for (User user : userManager.getAllUsers().values()) {
@@ -51,7 +52,7 @@ public class Admin {
         System.out.println("\n--- Properties of " + sellerEmail + " ---");
         boolean foundProperties = false;
 
-        // Retrieve all properties from PropertyManager
+        // retrieving all properties from PropertyManager
         for (Property property : propertyManager.getAllProperties().values()) {
             if (property.getSellerEmail() != null && property.getSellerEmail().equalsIgnoreCase(sellerEmail)) {
                 System.out.println(property);
@@ -64,7 +65,7 @@ public class Admin {
             System.out.println("No properties found for this seller.");
         }
     }
-    // Method to display all properties
+    // display all properties
     private void viewAllProperties() {
         System.out.println("\n--- All Properties ---");
         if (propertyManager.getAllProperties().isEmpty()) {

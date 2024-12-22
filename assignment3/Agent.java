@@ -69,7 +69,7 @@ public class Agent {
             return;
         }
 
-        // Pass agentEmail as the third argument
+        // passing agentEmail as the third argument
         savePermissionRequest(sellerEmail, propertyId, agentEmail);
         System.out.println("Edit request sent to the seller: " + sellerEmail);
     }

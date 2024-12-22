@@ -13,14 +13,18 @@ public class Buyer {
     public Buyer() {
         propertyManager = new PropertyManager();
         userManager = new UserManager();
-        
+
+    }
+
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
     }
 
     public void showBuyerMenu(Scanner scanner, String buyerUsername) {
         while (true) {
             System.out.println("\n--- Buyer Menu ---");
             System.out.println("1. Search Properties");
-            System.out.println("2. View All Properties"); // New option
+            System.out.println("2. View All Properties");
             System.out.println("3. Contact Seller/Agent");
             System.out.println("4. Make Payment");
             System.out.println("5. Sign Contract");
@@ -28,11 +32,11 @@ public class Buyer {
             System.out.print("Enter your choice: ");
 
             int choice = scanner.nextInt();
-            scanner.nextLine();  // Consume the newline
+            scanner.nextLine();
 
             if (choice == 1) {
                 searchProperties(scanner);
-            } else if (choice == 2) { // Handle the new option
+            } else if (choice == 2) {
                 viewAllPropertiesForBuyer();
             } else if (choice == 3) {
                 contactSellerOrAgent(scanner, buyerUsername);
@@ -56,6 +60,12 @@ public class Buyer {
         // Find the property by ID
         Property property = propertyManager.getPropertyById(propertyId);
         if (property != null) {
+            // Check if the contract status is "Signed by Both"
+            if (!"Signed by Both".equalsIgnoreCase(property.getContractStatus())) {
+                System.out.println("Payment cannot proceed. The contract is not signed by both Buyer and Seller.");
+                return;
+            }
+
             System.out.println("You have selected the following property:");
             System.out.println(property);
 
@@ -68,7 +78,6 @@ public class Buyer {
 
             if (proceed.equalsIgnoreCase("yes")) {
                 System.out.println("Payment for property ID " + propertyId + " has been successfully processed.");
-
                 System.out.println("Notification sent to the seller for property ID " + propertyId);
                 property.setStatus("Sold");
                 propertyManager.saveAllPropertiesToFile();
@@ -169,49 +178,18 @@ public class Buyer {
         System.out.print("Enter Property ID for contract signing: ");
         String propertyId = scanner.nextLine();
 
-        // Fetch the property by its ID
         Property property = propertyManager.getPropertyById(propertyId);
         if (property == null) {
             System.out.println("Property not found.");
             return;
         }
 
-        // If the current user is a Buyer
-        if (currentUser.getRole().equalsIgnoreCase("Buyer")) {
-            if (!"Selling".equalsIgnoreCase(property.getStatus())) {
-                System.out.println("This property is not available for signing.");
-                return;
-            }
-
-            if (!"Not Signed".equalsIgnoreCase(property.getContractStatus())) {
-                System.out.println("Contract has already been signed or finalized.");
-                return;
-            }
-
-            property.setContractStatus("Signed by Buyer"); // Update contract status
-            propertyManager.saveAllPropertiesToFile(); // Persist changes
+        if ("Selling".equalsIgnoreCase(property.getStatus()) && "Not Signed".equalsIgnoreCase(property.getContractStatus())) {
+            property.setContractStatus("Signed by Buyer");
+            propertyManager.saveAllPropertiesToFile();
             System.out.println("Contract signed successfully as Buyer.");
-        }
-        // If the current user is a Seller
-        else if (currentUser.getRole().equalsIgnoreCase("Seller")) {
-            if (!property.getSellerEmail().equalsIgnoreCase(userEmail)) {
-                System.out.println("You are not authorized to sign this contract.");
-                return;
-            }
-
-            if (!"Signed by Buyer".equalsIgnoreCase(property.getContractStatus())) {
-                System.out.println("Buyer has not signed the contract yet.");
-                return;
-            }
-
-            property.setContractStatus("Signed by Both"); // Update contract status
-            property.setStatus("Sold"); // Finalize the sale
-            propertyManager.saveAllPropertiesToFile(); // Persist changes
-            System.out.println("Contract finalized successfully as Seller.");
-        }
-        // Invalid user role
-        else {
-            System.out.println("Only buyers and sellers can sign contracts.");
+        } else {
+            System.out.println("The property is either unavailable or the contract is already signed.");
         }
     }
 }
