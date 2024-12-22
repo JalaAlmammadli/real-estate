@@ -60,3 +60,5 @@ Fariz video: https://adauniversity-my.sharepoint.com/personal/fibrahimov19866_ad
 [GROUP ACADEMIC INTEGRITY DECLARATION (1) (1).docx.zip](https://github.com/user-attachments/files/18223015/GROUP.ACADEMIC.INTEGRITY.DECLARATION.1.1.docx.zip)
 
 Ayan video: https://www.youtube.com/watch?v=3ftlyKkUwjk
+
+Jala Video link: https://youtu.be/OEO-JQebRlQ
