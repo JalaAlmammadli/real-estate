@@ -57,3 +57,4 @@ Fariz video: https://adauniversity-my.sharepoint.com/personal/fibrahimov19866_ad
 
 [AI DECLARATION (1) (1) 2.docx.zip](https://github.com/user-attachments/files/18223014/AI.DECLARATION.1.1.2.docx.zip)
 
+[GROUP ACADEMIC INTEGRITY DECLARATION (1) (1).docx.zip](https://github.com/user-attachments/files/18223015/GROUP.ACADEMIC.INTEGRITY.DECLARATION.1.1.docx.zip)
