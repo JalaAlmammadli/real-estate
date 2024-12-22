@@ -1,4 +1,5 @@
 package assignment3.models;
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;

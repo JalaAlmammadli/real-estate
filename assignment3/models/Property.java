@@ -1,4 +1,4 @@
-package assignment3;
+package assignment3.models;
 
 public class Property {
     private String propertyId;

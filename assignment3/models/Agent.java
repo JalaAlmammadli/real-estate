@@ -1,4 +1,4 @@
-package assignment3;
+package assignment3.models;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

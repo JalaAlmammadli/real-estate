@@ -1,4 +1,4 @@
-package assignment3;
+package assignment3.models;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -1,5 +1,7 @@
 package assignment3;
 
+import assignment3.models.RealEstateApp;
+
 /*
  * @author Najam
  * 

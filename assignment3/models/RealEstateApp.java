@@ -1,4 +1,4 @@
-package assignment3;
+package assignment3.models;
 
 public class RealEstateApp {
     public static void main(String[] args) {
