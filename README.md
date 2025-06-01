@@ -1,4 +1,4 @@
-# CSCI3509-2024
+# CSCI-3509-2024
 **Design Rationale**
 
 The Real Estate Application's class diagram shows use of object-oriented design concepts and practices. It shows why specific design decisions were taken, including principles such as abstraction, encapsulation, inheritance, and polymorphism, also their compatibility with design patterns. 
